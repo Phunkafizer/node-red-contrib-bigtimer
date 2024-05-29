@@ -4,11 +4,15 @@
     "email": "pete@scargill.org",
     "url": "https://tech.scargill.net/bigtimer"
   },
+  "bundleDependencies": false,
   "dependencies": {
     "suncalc": "1.*"
   },
   "deprecated": false,
-  "description": "The ultimate Node-Red Timer with dusk, dawn (and variations inc. sunrise, sunset, moonrise and moonset), months, days, manual override, schedule pause, random or fixed offsets, special days and much more. Using STOP now turns the output off",
+  "description": "The ultimate Node-Red Timer with dusk, dawn (and variations inc. sunrise, sunset, moonrise and moonset), months, days, manual override, schedule pause, random or fixed offsets, special days and much more. Using STOP now turns the output off.",
+  "engines": {
+    "node": ">=8.0.0"
+  },
   "homepage": "https://tech.scargill.net/big-timer/",
   "keywords": [
     "node-red",
@@ -23,6 +27,7 @@
   "license": "MIT",
   "name": "node-red-contrib-bigtimer",
   "node-red": {
+    "version": ">=1.0.0",
     "nodes": {
       "bigtimer": "bigtimer.js"
     }
@@ -30,5 +35,5 @@
   "repository": {
     "private": true
   },
-  "version": "2.7.5"
+  "version": "2.8.5"
 }

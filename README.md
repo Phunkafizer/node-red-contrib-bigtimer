@@ -25,7 +25,7 @@ The command list for manual injection is as follows:
 	-geo_override         - Example "geo_override" (no quotes) clears the longitude and latitude override and reverts back to those you set manually in BigTimer panel, whereas "geo_override 37.7 -2.53" sets a location in southern Spain - values from Google maps. 
  
 Use a just-after-startup INJECT node to insert values for example from a global variable. 
-.
+
 Note that **on_override** and **off_override** settings will be lost if Node-Red is stopped and restarted or if the board/computer is rebooted.
 Check also **on_offset_override** and **off_offset_override**
 
@@ -37,7 +37,11 @@ For those occasions where "alternative days" are required there are checkbox opt
 ## General
 Note - if upgrading to a later version of BigTimer - check your settings. More information on BigTimer, my other nodes and a range of home-control-related projects can be found at [the tech blog](https://tech.scargill.net).
 
-From v2.0.7.  BigTimer output #1 features the following: (for example using GPIO12 on ESP8266 and ESP-GO - here we are in auto mode but have added a manual "timer" command for a short override)
+February 2023 v 2.8.5 fixed a silly with the July-December exclusion months.
+
+From v2.7.6 - Improved control of second timer on/off override
+ 
+From v2.0.7 - BigTimer output #1 features the following: (for example using GPIO12 on ESP8266 and ESP-GO - here we are in auto mode but have added a manual "timer" command for a short override)
 
 	-payload: {out12:1}
 	-topic: sonoff4/toesp

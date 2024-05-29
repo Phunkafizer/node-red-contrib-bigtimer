@@ -1,5 +1,5 @@
 /**
- * This node is copyright (c) 2017-2021 Peter Scargill. Please consider
+ * This node is copyright (c) 2017-2023 Peter Scargill. Please consider
  * it free to use for whatever timing purpose you like. If you wish to make
  * changes please note you have the full source when you install BigTimer which
  * essentially is just 2 files (html and js). I maintain BigTimer via 
@@ -12,6 +12,7 @@
  *
  * If you find BigTimer REALLY useful - on the blog (right column) is a PAYPAL link to
  * help support the blog and fund my need for new gadgets.
+ * away added 1/1/2022
  */
 
 module.exports = function (RED) {
@@ -59,6 +60,9 @@ module.exports = function (RED) {
 
 		var stopped = 0;
 
+		var awayMinutes = 0;
+    var awayDisp = 0;
+    var awayMod="mins";
 
 		var ismanual = -1;
 		var timeout = 0;
@@ -132,7 +136,7 @@ module.exports = function (RED) {
 		node.day8 = n.day8;
 		node.month8 = n.month8;
 		node.day9 = n.day9;
-		node.month9 = n.month;
+		node.month9 = n.month9;
 		node.day10 = n.day10;
 		node.month10 = n.month10;
 		node.day11 = n.day11;
@@ -258,10 +262,22 @@ module.exports = function (RED) {
 		node.outPayload2 = n.outpayload2;
 		node.outPayloadType2 = n.outpayloadType2;
 
+
+	
+
+
+
 		node
 			.on(
 			"input",
 			function (inmsg) {
+			if (awayMinutes) awayMinutes--; 
+      if (awayMod=="mins") { awayDisp=0; if (awayMinutes)  awayMinutes--; }
+       else 
+       if (awayMod=="hrs") { awayDisp++; if (awayDisp>=60) { awayDisp=0;  if (awayMinutes) awayMinutes--;    } }
+        else 
+       if (awayMod=="days") { awayDisp++; if (awayDisp>=1440) { awayDisp=0;  if (awayMinutes)  awayMinutes--;  }   }
+     
       
         if ((lonOverride != -1) &&  (latOverride!=-1)) { node.lon=lonOverride; node.lat=latOverride; } else  { node.lon=n.lon; node.lat=n.lat; }
       
@@ -361,7 +377,18 @@ module.exports = function (RED) {
 						}
             break;
                        
+            case "away":
+             if (typeof theSwitch[1] === 'undefined') awayMinutes=0; else awayMinutes=Number(theSwitch[1]);
+             
+            if (typeof theSwitch[2] === 'undefined') { awayMod="mins"; awayDisp=0; }
+             else if (theSwitch[2].toLowerCase().substr(0,1)=='h')  { awayMod="hrs"; awayDisp=0;  } 
+             else if (theSwitch[2].toLowerCase().substr(0,1)=='d')  { awayMod="days"; awayDisp=0;  } 
+             else { awayMinutes=Number(theSwitch[1]); awayDisp=0; }
             
+            // }
+             
+              awayMinutes++;
+            break;
             
              
 						case "sync": goodDay = 1; change = 1; break;
@@ -780,12 +807,12 @@ module.exports = function (RED) {
 				if ((node.xday4 == now.getDate()) && (node.xmonth4 == (now.getMonth() + 1))) autoState = 0;
 				if ((node.xday5 == now.getDate()) && (node.xmonth5 == (now.getMonth() + 1))) autoState = 0;
 				if ((node.xday6 == now.getDate()) && (node.xmonth6 == (now.getMonth() + 1))) autoState = 0;
-        if ((node.xday7 == now.getDate()) && (node.xmonth7 == (now.getMonth() + 1))) autoState = 1;
-				if ((node.xday8 == now.getDate()) && (node.xmonth8 == (now.getMonth() + 1))) autoState = 1;
-				if ((node.xday9 == now.getDate()) && (node.xmonth9 == (now.getMonth() + 1))) autoState = 1;
-				if ((node.xday10 == now.getDate()) && (node.xmonth10 == (now.getMonth() + 1))) autoState = 1;
-				if ((node.xday11 == now.getDate()) && (node.xmonth11 == (now.getMonth() + 1))) autoState = 1;
-				if ((node.xday12 == now.getDate()) && (node.xmonth12 == (now.getMonth() + 1))) autoState = 1;
+        if ((node.xday7 == now.getDate()) && (node.xmonth7 == (now.getMonth() + 1))) autoState = 0; // feb 2023 fixed the last 6 which were inverted
+				if ((node.xday8 == now.getDate()) && (node.xmonth8 == (now.getMonth() + 1))) autoState = 0;
+				if ((node.xday9 == now.getDate()) && (node.xmonth9 == (now.getMonth() + 1))) autoState = 0;
+				if ((node.xday10 == now.getDate()) && (node.xmonth10 == (now.getMonth() + 1))) autoState = 0;
+				if ((node.xday11 == now.getDate()) && (node.xmonth11 == (now.getMonth() + 1))) autoState = 0;
+				if ((node.xday12 == now.getDate()) && (node.xmonth12 == (now.getMonth() + 1))) autoState = 0;
 
 				if (dayinmonth(now, node.xd1, node.xw1) == true) autoState = 0;
 				if (dayinmonth(now, node.xd2, node.xw2) == true) autoState = 0;
@@ -901,7 +928,7 @@ module.exports = function (RED) {
 				if ((permanentManual == 1) || (temporaryManual == 1) || (node.suspend)) {   // so manual then
 					if (actualState) {
 						if (stopped == 0)
-							{ statusText = "ON" + manov;
+							{ if (awayMinutes>1) statusText = "Away " + ((awayMinutes)-1) + awayMod; else statusText = "ON" + manov;
                node.status({
 								fill: "green",
 								shape: thedot,
@@ -909,7 +936,7 @@ module.exports = function (RED) {
 							}); }
 						else
 							{
-              statusText = "STOPPED" + manov;
+              if (awayMinutes>1) statusText = "Away " + ((awayMinutes)-1) + awayMod; else statusText = "STOPPED" + manov;
               node.status({   // stopped completely
 								fill: "black",
 								shape: thedot,
@@ -920,7 +947,7 @@ module.exports = function (RED) {
 					else {
 						if (stopped == 0)
 							{
-              statusText = "OFF" + manov;
+              if (awayMinutes>1) statusText = "Away " + ((awayMinutes)-1) + awayMod; else statusText = "OFF" + manov;
               node.status({
 								fill: "red",
 								shape: thedot,
@@ -929,7 +956,7 @@ module.exports = function (RED) {
              }
 						else
               {
-              statusText = "STOPPED" + manov; 
+              if (awayMinutes>1) statusText = "Away " + ((awayMinutes)-1) + awayMod; else statusText = "STOPPED" + manov; 
 							node.status({   // stopped completely
 								fill: "black",
 								shape: thedot,
@@ -940,9 +967,9 @@ module.exports = function (RED) {
 				}
 				else // so not manual but auto....
 				{
-					if (goodDay == 1)  // auto and today's the day
+					if (goodDay == 1) // auto and today's the day
 					{ 
-						if (actualState) {  // i.e. if turning on automatically
+						if (actualState)  {  // i.e. if turning on automatically
 							if (actualState==1)
 						 	{
 								if (today <= actualEndTime)
@@ -961,7 +988,7 @@ module.exports = function (RED) {
 							outmsg2.time = pad(parseInt(duration / 60), 2) + "hrs " + pad(duration % 60, 2) + "mins";
 							if (stopped == 0)
 								{
-                statusText = "ON for " + pad(parseInt(duration / 60), 2) + "hrs " + pad(duration % 60, 2) + "mins" + manov;
+                if (awayMinutes>1) statusText = "Away " + ((awayMinutes)-1) + awayMod; else statusText = "ON for " + pad(parseInt(duration / 60), 2) + "hrs " + pad(duration % 60, 2) + "mins";
                 node.status({
 									fill: "green",
 									shape: thedot,
@@ -970,7 +997,7 @@ module.exports = function (RED) {
                 }
 							else
 								{
-                statusText = "STOPPED" + manov;
+                if (awayMinutes>1) statusText = "Away " + ((awayMinutes)-1) + "mins"; else statusText = "STOPPED" + manov;
                 node.status({   // stopped completely
 									fill: "black",
 									shape: thedot,
@@ -997,7 +1024,7 @@ module.exports = function (RED) {
 							outmsg2.time = pad(parseInt(duration / 60), 2) + "hrs " + pad(duration % 60, 2) + "mins" + manov;
 							if (stopped == 0)
 								{
-                statusText = "OFF for " + pad(parseInt(duration / 60), 2) + "hrs " + pad(duration % 60, 2) + "mins" + manov;
+                if (awayMinutes>1) statusText = "Away " + ((awayMinutes)-1) + awayMod; else statusText = "OFF for " + pad(parseInt(duration / 60), 2) + "hrs " + pad(duration % 60, 2) + "mins" + manov;
                 node.status({
 									fill: "blue",
 									shape: thedot,
@@ -1006,7 +1033,7 @@ module.exports = function (RED) {
                 }
 							else
 							{
-               statusText = "STOPPED" + manov;
+               if (awayMinutes>1) statusText = "Away " + ((awayMinutes)-1) + awayMod; else statusText = "STOPPED" + manov;
               	node.status({   // stopped completely
 									fill: "black",
 									shape: thedot,
@@ -1019,7 +1046,7 @@ module.exports = function (RED) {
 						outmsg2.time = "";
 						if (stopped == 0)
 						{
-             statusText = "No action today" + manov;
+             if (awayMinutes>1) statusText = "Away " + ((awayMinutes)-1) + awayMod; else statusText = "No action today" + manov;
             	node.status({   // auto and nothing today thanks
 								fill: "black",
 								shape: thedot,
@@ -1028,7 +1055,7 @@ module.exports = function (RED) {
              }
 						else
 							{
-              statusText = "STOPPED" + manov;
+              if (awayMinutes>1) statusText = "Away " + ((awayMinutes)-1) + awayMod; else statusText = "STOPPED" + manov;
               node.status({   // stopped completely
 								fill: "black",
 								shape: thedot,
@@ -1048,8 +1075,8 @@ module.exports = function (RED) {
 				if (temporaryManual || permanentManual) outmsg1.state = (actualState) ? "on" : "off"; else outmsg1.state = "auto";
 				outmsg1.value = actualState;
 
-				if (actualState) {
-					outmsg1.payload = (node.outPayloadType1 === "date") ? Date.now() : RED.util.evaluateNodeProperty(node.outPayload1, node.outPayloadType1, node);
+				if ((actualState) && (awayMinutes<2)) {
+					outmsg1.payload = node.outPayload1;
 					outmsg3.payload = node.outText1;
 				}
 				else {
@@ -1070,9 +1097,11 @@ module.exports = function (RED) {
 				outmsg1.stamp = Date.now();
         outmsg1.extState=statusText;
 
-				outmsg2.payload = outmsg1.value;
+				if (awayMinutes) outmsg2.state="AWAY";
 				outmsg2.start = actualStartTime;
-				outmsg2.end = actualEndTime;
+				outmsg2.end = actualEndTime;       
+				outmsg2.start2 = actualStartTime2; // added these 2 lines Sept 2022
+				outmsg2.end2 = actualEndTime2;       
 				outmsg2.dusk = dusk;
 				outmsg2.dawn = dawn;
 				outmsg2.solarNoon = solarNoon;
@@ -1091,12 +1120,17 @@ module.exports = function (RED) {
 				outmsg2.offOffsetOverride = offOffsetOverride;
 				outmsg2.stamp = Date.now();
         outmsg2.extState=statusText;
+        
+        if (outmsg2.state.substr(0,2)=="ON") outmsg2.payload=1; else outmsg2.payload=0; // jan 9, 2022
 				
 
 					if ((!node.suspend) && ((goodDay) || (permanentManual))) {
 					if ((change) || ((node.atStart) && (startDone == 0))) {
-						if (outmsg1.payload > "") {
-							if (stopped == 0) { if (change) node.send([outmsg1, outmsg2, outmsg3]); else node.send([null, outmsg2, outmsg3]); } else { if (change) node.send([outmsg1, outmsg2, null]); else node.send([null, outmsg2, null]); }
+						if (outmsg1.payload > "")  {
+							if (stopped == 0) 
+                { if (change) node.send([outmsg1, outmsg2, outmsg3]); 
+                  else node.send([null, outmsg2, outmsg3]); 
+                } else { if (change) node.send([outmsg1, outmsg2, null]); else node.send([null, outmsg2, null]); }
 						}
 						else {
 							if (stopped == 0) node.send([null, outmsg2, outmsg3]); else node.send([null, outmsg2, null]);
@@ -1116,6 +1150,7 @@ module.exports = function (RED) {
 					}
 				}
 				startDone = 1;
+
 			});  // end of the internal function
 
 		var tock = setTimeout(function () {
